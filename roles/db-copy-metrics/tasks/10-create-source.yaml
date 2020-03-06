@@ -1,0 +1,43 @@
+---
+- name: "Prepare source cluster"
+  block:
+  - name: "Login to source cluster"
+    shell: "oc login {{ src_cluster.url }} --token={{src_cluster.token}}"
+  - name: "Define source context"
+    set_fact:
+      src_cluster:
+        name: "{{ src_cluster.name }}"
+        url: "{{ src_cluster.url }}"
+        context: "default/{{ src_cluster.url | urlsplit('netloc') | regex_replace('\\.', '-')}}/{{ src_cluster.user }}"
+        user: "{{ src_cluster.user }}"
+
+- name: "Prepare destination cluster"
+  block:
+  - name: "Login to destination cluster"
+    shell: "oc login {{ dst_cluster.url }} --token={{dst_cluster.token}}"
+  - name: "Define destination context"
+    set_fact:
+      dst_cluster:
+        name: "{{ dst_cluster.name }}"
+        url: "{{ dst_cluster.url }}"
+        context: "default/{{ dst_cluster.url | urlsplit('netloc') | regex_replace('\\.', '-')}}/{{ dst_cluster.user }}"
+        user: "{{ dst_cluster.user }}"
+
+- name: "Create measurement namespace"
+  k8s:
+    state: present
+    context: "{{ src_cluster.context }}"
+    kind: Namespace
+    api_version: v1
+    name: "{{ measurement.namespace }}"
+
+- name: "Create source database"
+  k8s:
+    state: present
+    context: "{{ src_cluster.context }}"
+    resource_definition: "{{ lookup('template', measurement.type + '.yaml.j2') }}"
+    name: irrelevant
+    kind: irrelevant
+    api_version: irrelevant
+
+# vim:tw=120:ts=2:sw=2

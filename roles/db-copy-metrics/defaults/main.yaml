@@ -1,0 +1,23 @@
+---
+measurement:
+  name: "dbcopy"
+  type: "mariadb"
+  namespace: "migration-metrics-gathering"
+  size: "10Gi"
+  stage: "stage"
+  method: "snapshot"
+  resultfile: "./dbcopy-migration-results.json"
+
+db:
+  namespace: "openshift"
+  image: "mariadb"
+  version: "10.2"
+  ram: "512Mi"
+  size: "11Gi"
+  class: "glusterfs-storage"
+  tablename: 'data'
+  tablesize: '0100000'
+  # 0010000, 0100000 or 1000000
+
+
+# vim:tw=120:ts=2:sw=2

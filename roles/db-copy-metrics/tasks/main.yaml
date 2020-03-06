@@ -1,0 +1,4 @@
+---
+- include_tasks: 10-create-source.yaml
+- include_tasks: 20-create-sql-data.yaml
+- include_tasks: 30-create-cam-plan.yaml

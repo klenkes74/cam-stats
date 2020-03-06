@@ -1,0 +1,25 @@
+---
+kind: List
+apiVersion: v1
+items:
+- kind: MigPlan
+  apiVersion: migration.openshift.io/v1alpha1
+  metadata:
+    name: "{{ measurement.name }}"
+    namespace: openshift-migration
+    labels:
+      remove: "{{ measurement.name }}"
+  spec:
+    srcMigClusterRef:
+      name: "{{ src_cluster.name }}"
+      namespace: openshift-migration
+    destMigClusterRef:
+      name: "{{ dst_cluster.name }}"
+      namespace: openshift-migration
+    migStorageRef:
+      name: "{{ migration.storage }}"
+      namespace: openshift-migration
+    namespaces:
+    - "{{ measurement.namespace }}"
+
+# vim:tw=120:ts=2:sw=2:ru

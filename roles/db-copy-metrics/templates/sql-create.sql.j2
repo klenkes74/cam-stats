@@ -1,0 +1,136 @@
+-- vim:tw=120:ts=2:sw=2
+--
+
+CREATE TABLE IF NOT EXISTS names (
+	id			INT AUTO_INCREMENT PRIMARY KEY,
+	name		VARCHAR(20)
+);
+TRUNCATE TABLE names;
+
+-- Create the name table
+INSERT INTO names (name) VALUES
+  ("Abbott"),
+  ("Albers"),
+  ("Arrow"),
+  ("Aumann"),
+  ("Axelrod"),
+  ("Basar"),
+  ("Bicchieri"),
+  ("Bondareva"),
+  ("Brams"),
+  ("Chayes"),
+  ("Conway"),
+  ("Hamilton"),
+  ("Harsanyi"),
+  ("Henzinger"),
+  ("Hovakimyan"),
+  ("Hurd"),
+  ("Isaacs"),
+  ("Karlin"),
+  ("Kearns"),
+  ("Kraus"),
+  ("Smith"),
+  ("Morgenstern"),
+  ("Nash"),
+  ("Neumann"),
+  ("Parrondo"),
+  ("Pearce"),
+  ("Price"),
+  ("Rapoport"),
+  ("Robinson"),
+  ("Roth"),
+  ("Rubinstein"),
+  ("Schaefer"),
+  ("Scotchmer"),
+  ("Selten"),
+  ("Shannon"),
+  ("Shapley"),
+  ("Schelling"),
+  ("Wooders");
+
+
+CREATE TABLE IF NOT EXISTS {{ db.tablename }} (
+	id	  	INT AUTO_INCREMENT PRIMARY KEY,
+	name		VARCHAR(20),
+	hash		VARCHAR(32),
+	dim1		INT,
+	dim2		DOUBLE
+);
+TRUNCATE TABLE {{ db.tablename }};
+
+-- Seed the {{ db.tablename }} ...
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+VALUES ('Nash', MD5(''), 1, .1);
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }};
+
+INSERT INTO {{ db.tablename }} (name, hash, dim1, dim2)
+SELECT (select name from names where id = FLOOR(1+rand()*37) LIMIT 1),
+       MD5(1+rand()*9999),
+			 FLOOR(1 + rand() * 9999),
+			 rand()
+	FROM {{ db.tablename }}
+ LIMIT 488;
+
+-- now we have 1000 lines.

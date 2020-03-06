@@ -1,0 +1,64 @@
+---
+- name: "Check template"
+  template:
+    src: "mig-migrations.yaml.j2"
+    dest: /tmp/mig-migrations.yaml
+
+- name: "Creating migration"
+  k8s:
+    state: present
+    context: "{{ dst_cluster.context }}"
+    resource_definition: "{{ lookup('template', 'mig-migrations.yaml.j2') }}"
+    name: irrelevant
+    kind: irrelevant
+    api_version: irrelevant
+  register: migplan
+
+- name: "Get MigPlan UID from result"
+  set_fact:
+    migplan_uid: "{{ migplan.result.metadata.uid }}"
+
+
+- name: "Start stage ..."
+  k8s:
+    state: present
+    context: "{{ dst_cluster.context }}"
+    resource_definition: "{{ lookup('template', 'mig-stage.yaml.j2') }}"
+    name: irrelevant
+    kind: irrelevant
+    api_version: irrelevant
+
+- name: "Start execution ..."
+  k8s:
+    state: present
+    context: "{{ dst_cluster.context }}"
+    resource_definition: "{{ lookup('template', 'mig-execute.yaml.j2') }}"
+    name: irrelevant
+    kind: irrelevant
+    api_version: irrelevant
+
+- name: "Check stage finished"
+  k8s_info:
+    kind: MigMigration
+    api_version: migration.openshift.io/v1alpha1
+    namespace: 'openshift-migration'
+    name: "{{ measurement.name }}-stage"
+  register: stage_result
+  until: 'stage_result.resources[0].status.phase == "Completed"'
+  retries: 40
+  delay: 15
+  ignore_errors: yes
+
+- name: "Check execution finished"
+  k8s_info:
+    kind: MigMigration
+    api_version: migration.openshift.io/v1alpha1
+    namespace: 'openshift-migration'
+    name: "{{ measurement.name }}-execute"
+  register: execute_result
+  until: 'execute_result.resources[0].status.phase == "Completed"'
+  retries: 40
+  delay: 15
+  ignore_errors: yes
+
+# vim:tw=120:ts=2:sw=2

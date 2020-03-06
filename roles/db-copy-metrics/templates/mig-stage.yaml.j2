@@ -1,0 +1,21 @@
+---
+kind: List
+apiVersion: v1
+items:
+- kind: MigMigration
+  apiVersion: migration.openshift.io/v1alpha1
+  metadata:
+    name: "{{ measurement.name }}-stage"
+    namespace: openshift-migration
+    ownerReferences:
+      - apiVersion: migration.openshift.io/v1alpha1
+        kind: MigPlan
+        name: "{{ measurement.name }}"
+        uid: "{{ migplan_uid }}"
+  spec:
+    migPlanRef:
+      name: "{{ measurement.name }}"
+      namespace: openshift-migration
+    stage: true
+
+# vim:tw=120:ts=2:sw=2:ru

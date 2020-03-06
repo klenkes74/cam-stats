@@ -1,0 +1,20 @@
+---
+controlhosts:
+  vars:
+    migration:
+      storage: sandbox-6855-registry
+    src_cluster:
+      name: sandbox-6855
+      url: https://master.6855.open.redhat.com:443
+      token: JBlYVpWTPZDCYwQaRHinmdwnz7JkBVkcae_kmJuk46A
+      user: opentlc-mgr
+    dst_cluster:
+      name: host
+      url: https://api.cluster-0b52.0b52.sandbox1467.opentlc.com:6443
+      token: n8IGKjC8hzkuW3ry_hFuAgI6003jUtdPy61aFW9A9jQ
+      user: admin
+  hosts:
+    localhost:
+      vars:
+        ansible_collection: local
+        ansible_python_interpreter: /usr/bin/python2

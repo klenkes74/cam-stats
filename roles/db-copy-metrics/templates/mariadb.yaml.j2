@@ -1,0 +1,152 @@
+---
+kind: List
+apiVersion: v1
+items:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        template.openshift.io/expose-database_name: '{.data[''database-name'']}'
+        template.openshift.io/expose-password: '{.data[''database-password'']}'
+        template.openshift.io/expose-root_password: '{.data[''database-root-password'']}'
+        template.openshift.io/expose-username: '{.data[''database-user'']}'
+      name: '{{measurement.name}}-db'
+      namespace: '{{ measurement.namespace }}'
+      labels:
+        remove: '{{ measurement.name }}'
+    stringData:
+      database-name: '{{ measurement.name }}'
+      database-password: 'test'
+      database-root-password: 'test'
+      database-user: 'test'
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        template.openshift.io/expose-uri: 'mysql://{.spec.clusterIP}:{.spec.ports[?(.name=="mariadb")].port}'
+      name: '{{ measurement.name }}'
+      namespace: '{{ measurement.namespace }}'
+      labels:
+        remove: '{{ measurement.name }}'
+    spec:
+      ports:
+        - name: mariadb
+          port: 3306
+      selector:
+        name: '{{ measurement.name}}-db'
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: '{{ measurement.name }}-3306'
+      namespace: '{{ measurement.namespace }}'
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+        service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: '300'
+        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+      labels:
+        remove: '{{ measurement.name }}'
+    spec:
+      ports:
+      - name: mariadb
+        port: 3306
+      selector:
+        name: '{{ measurement.name }}-db'
+      type: LoadBalancer
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: '{{ measurement.name }}-db'
+      namespace: '{{ measurement.namespace }}'
+      labels:
+        remove: '{{ measurement.name }}'
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: '{{db.size}}'
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      annotations:
+        template.alpha.openshift.io/wait-for-ready: 'true'
+      name: '{{ measurement.name }}-db'
+      namespace: '{{ measurement.namespace }}'
+      labels:
+        remove: '{{ measurement.name }}'
+    spec:
+      replicas: 1
+      selector:
+        name: '{{ measurement.name }}-db'
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            name: '{{ measurement.name }}-db'
+            namespace: '{{ measurement.name }}'
+        spec:
+          containers:
+            - env:
+                - name: MYSQL_USER
+                  valueFrom:
+                    secretKeyRef:
+                      key: database-user
+                      name: '{{ measurement.name }}-db'
+                - name: MYSQL_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: database-password
+                      name: '{{ measurement.name }}-db'
+                - name: MYSQL_ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: database-root-password
+                      name: '{{ measurement.name }}-db'
+                - name: MYSQL_DATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      key: database-name
+                      name: '{{ measurement.name }}-db'
+              image: ' '
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                initialDelaySeconds: 30
+                tcpSocket:
+                  port: 3306
+                timeoutSeconds: 1
+              name: mariadb
+              ports:
+                - containerPort: 3306
+              readinessProbe:
+                exec:
+                  command:
+                    - /bin/sh
+                    - '-i'
+                    - '-c'
+                    - >-
+                      MYSQL_PWD="$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u
+                      $MYSQL_USER -D $MYSQL_DATABASE -e 'SELECT 1'
+                initialDelaySeconds: 5
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  memory: '{{ db.ram }}'
+              volumeMounts:
+                - mountPath: /var/lib/mysql/data
+                  name: '{{ measurement.name }}-db-data'
+          volumes:
+            - name: '{{ measurement.name }}-db-data'
+              persistentVolumeClaim:
+                claimName: '{{ measurement.name }}-db'
+      triggers:
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - mariadb
+            from:
+              kind: ImageStreamTag
+              name: '{{ db.image }}:{{ db.version }}'
+              namespace: '{{ db.namespace }}'
+          type: ImageChange
+        - type: ConfigChange

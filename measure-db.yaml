@@ -1,0 +1,8 @@
+- name: "Measure transfer of database to new cluster"
+  hosts: controlhosts
+  gather_facts: no
+
+  roles:
+  - db-copy-metrics
+
+# vim:tw=120:ts=2:sw=2

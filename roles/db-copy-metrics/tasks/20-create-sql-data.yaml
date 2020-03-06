@@ -1,0 +1,51 @@
+---
+- name: "Get database pod name"
+  shell: "oc --context={{ src_cluster.context }} get pod -o custom-columns=name:.metadata.name --no-headers -n {{ measurement.namespace }}"
+  register: database_pod
+
+- debug:
+    msg: "Working on pod: {{ database_pod }}"
+
+- name: "Wait for pod being ready ..."
+  shell: "oc --context={{ src_cluster.context }} get pod -o custom-columns=ready:.status.containerStatuses[].ready -n {{ measurement.namespace }} --no-headers"
+  register: database_ready
+  until: 'database_ready.stdout == "true"'
+  retries: 30
+  delay: 3
+  ignore_errors: yes
+
+- name: "Start port forwarding for port 3306"
+  shell: "oc --context={{ src_cluster.context }} port-forward {{ database_pod.stdout }} 3306:3306 -n {{ measurement.namespace }} </dev/null >/dev/null 2>&1 &"
+  async: 10
+  poll: 0
+
+- name: "Create sql data creator sql input"
+  template:
+    src: "sql-create.sql.j2"
+    dest: "/tmp/sql-create.sql"
+
+- name: "Create random data file"
+  template:
+    src: "sql-{{ db.tablesize }}.sql.j2"
+    dest: "/tmp/sql-generate-data.sql"
+
+
+- name: "Execute random data generation"
+  shell: "mysql -h 127.0.0.1 -P 3306 -u test -ptest test < {{ item }}"
+  loop:
+  - "/tmp/sql-create.sql"
+  - "/tmp/sql-generate-data.sql"
+  loop_control:
+    label: "{{ item }}"
+
+- name: "Remove generated sql files"
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+  - "/tmp/sql-create.sql"
+  - "/tmp/sql-generate-data.sql"
+  loop_control:
+    label: "{{ item }}"
+
+# vim:tw=120:ts=2:sw=2
